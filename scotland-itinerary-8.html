@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leonie & Pierre — Scotland 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a1a;
+    --parchment: #f5f0e8;
+    --heather: #7c5c7a;
+    --moss: #3d5a3e;
+    --mist: #b8c4c2;
+    --amber: #c8832a;
+    --stone: #8e8880;
+    --cream: #fffdf8;
+    --loch: #2e4a5a;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--parchment);
+    color: var(--ink);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 30% 60%, rgba(124,92,122,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 75% 20%, rgba(46,74,90,0.22) 0%, transparent 50%),
+      linear-gradient(160deg, #1c2e26 0%, #2e4038 40%, #1e2e3a 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .hero-ornament {
+    color: rgba(200,131,42,0.6);
+    font-size: 1.4rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    margin-bottom: 1.2rem;
+    animation: fadeUp 1s ease both;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 10vw, 7rem);
+    font-weight: 700;
+    color: var(--cream);
+    text-align: center;
+    line-height: 1.05;
+    animation: fadeUp 1s 0.15s ease both;
+    letter-spacing: -0.02em;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: #b8c4c2;
+  }
+
+  .hero-sub {
+    margin-top: 1.5rem;
+    color: rgba(245,240,232,0.6);
+    font-size: 1.1rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    animation: fadeUp 1s 0.3s ease both;
+  }
+
+  .hero-dates {
+    margin-top: 2.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    animation: fadeUp 1s 0.45s ease both;
+  }
+
+  .hero-dates span {
+    color: var(--cream);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-style: italic;
+  }
+
+  .hero-dates .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+    flex-shrink: 0;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(245,240,232,0.35);
+    font-size: 0.78rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    animation: fadeUp 1s 0.8s ease both;
+  }
+
+  .scroll-hint::after {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(245,240,232,0.4), transparent);
+    animation: scrollPulse 2s ease infinite;
+  }
+
+  /* ── INTRO BAND ── */
+  .intro-band {
+    background: var(--cream);
+    padding: 4rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .intro-band p {
+    max-width: 620px;
+    margin: 0 auto;
+    font-size: 1.2rem;
+    color: var(--stone);
+    font-style: italic;
+    line-height: 1.8;
+  }
+
+  .intro-band p strong {
+    color: var(--ink);
+    font-style: normal;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 4rem 2rem 6rem;
+  }
+
+  /* ── SECTION TITLE ── */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    margin-top: 3rem;
+  }
+
+  .section-label::before, .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--mist));
+  }
+  .section-label::after {
+    background: linear-gradient(to left, transparent, var(--mist));
+  }
+
+  .section-label span {
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--stone);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ── DAY CARDS ── */
+  .day-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .day-card {
+    background: var(--cream);
+    border-radius: 4px;
+    border-left: 3px solid var(--mist);
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .day-card:hover {
+    border-left-color: var(--heather);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  }
+
+  .day-card.hike-day { border-left-color: var(--moss); }
+  .day-card.hike-day:hover { border-left-color: #2a4a2b; }
+  .day-card.city-day { border-left-color: var(--loch); }
+  .day-card.city-day:hover { border-left-color: #1c3040; }
+  .day-card.final-day { border-left-color: var(--amber); }
+  .day-card.final-day:hover { border-left-color: #9e6215; }
+
+  .day-header {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1.4rem 1.8rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .day-number {
+    text-align: center;
+  }
+
+  .day-number .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .day-number .label {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-top: 2px;
+  }
+
+  .day-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .day-info .day-date {
+    font-size: 0.85rem;
+    color: var(--stone);
+    margin-top: 0.2rem;
+    font-style: italic;
+  }
+
+  .day-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .tag-hike { background: rgba(61,90,62,0.12); color: var(--moss); }
+  .tag-hotel { background: rgba(124,92,122,0.12); color: var(--heather); }
+  .tag-city { background: rgba(46,74,90,0.12); color: var(--loch); }
+  .tag-drive { background: rgba(142,136,128,0.12); color: var(--stone); }
+  .tag-arrive { background: rgba(200,131,42,0.15); color: var(--amber); }
+
+  .chevron {
+    width: 20px;
+    height: 20px;
+    color: var(--mist);
+    transition: transform 0.3s, color 0.3s;
+    flex-shrink: 0;
+  }
+
+  .day-card.open .chevron { transform: rotate(180deg); color: var(--heather); }
+
+  .day-body {
+    display: none;
+    padding: 0 1.8rem 1.8rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    padding-top: 1.4rem;
+  }
+
+  .day-card.open .day-body { display: block; }
+
+  .day-body p {
+    color: #444;
+    font-size: 1rem;
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+
+  /* ── BLOCKS INSIDE DAY BODY ── */
+  .block {
+    margin-bottom: 1.2rem;
+    padding: 1rem 1.2rem;
+    border-radius: 3px;
+  }
+
+  .block-hotel {
+    background: rgba(124,92,122,0.07);
+    border: 1px solid rgba(124,92,122,0.15);
+  }
+
+  .block-hike {
+    background: rgba(61,90,62,0.07);
+    border: 1px solid rgba(61,90,62,0.15);
+  }
+
+  .block-tip {
+    background: rgba(200,131,42,0.07);
+    border: 1px solid rgba(200,131,42,0.2);
+  }
+
+  .block-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .block-title .icon { font-size: 1.1rem; }
+
+  .block p {
+    font-size: 0.95rem;
+    color: #555;
+    margin: 0;
+    line-height: 1.65;
+  }
+
+  .block .meta {
+    font-size: 0.82rem;
+    color: var(--stone);
+    margin-top: 0.4rem;
+    font-style: italic;
+  }
+
+  /* ── OVERVIEW MAP ── */
+  .loop-overview {
+    background: var(--cream);
+    border-radius: 4px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .loop-overview h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    margin-bottom: 1.2rem;
+    color: var(--ink);
+  }
+
+  .route-steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0;
+    font-size: 0.9rem;
+  }
+
+  .route-stop {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .route-stop .city {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+
+  .route-stop .nights {
+    font-size: 0.75rem;
+    color: var(--stone);
+    font-style: italic;
+  }
+
+  .route-arrow {
+    color: var(--amber);
+    font-size: 1rem;
+    padding: 0 0.4rem;
+    flex-shrink: 0;
+  }
+
+  /* ── BUDGET TABLE ── */
+  .budget-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .budget-item {
+    background: var(--cream);
+    border-radius: 3px;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid rgba(0,0,0,0.07);
+  }
+
+  .budget-item .amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .budget-item .desc {
+    font-size: 0.8rem;
+    color: var(--stone);
+    margin-top: 0.1rem;
+  }
+
+  /* ── PACKING ── */
+  .pack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .pack-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    color: #555;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .pack-item .pi { color: var(--moss); }
+
+  /* ── EXTRAS ── */
+  .extras-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 680px) {
+    .extras-grid { grid-template-columns: 1fr; }
+  }
+
+  .extra-card {
+    background: var(--cream);
+    border-radius: 4px;
+    padding: 1.5rem 1.6rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    border-top: 3px solid var(--mist);
+  }
+
+  .extra-card:nth-child(1) { border-top-color: #9b6b9b; }
+  .extra-card:nth-child(2) { border-top-color: var(--amber); }
+  .extra-card:nth-child(3) { border-top-color: var(--moss); }
+  .extra-card:nth-child(4) { border-top-color: var(--loch); }
+
+  .extra-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.4rem;
+    line-height: 1;
+  }
+
+  .extra-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+  }
+
+  .extra-item {
+    margin-bottom: 1.1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px dashed rgba(0,0,0,0.07);
+  }
+
+  .extra-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .extra-item-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.35rem;
+    line-height: 1.3;
+  }
+
+  .extra-item p {
+    font-size: 0.88rem;
+    color: #555;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  .extra-meta {
+    font-size: 0.78rem !important;
+    color: var(--stone) !important;
+    font-style: italic;
+    margin-top: 0.4rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .meta a.map-pin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--loch);
+    text-decoration: none;
+    font-style: normal;
+    border: 1px solid rgba(46,74,90,0.25);
+    border-radius: 20px;
+    padding: 0.1rem 0.5rem;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+  .meta a.map-pin:hover {
+    background: var(--loch);
+    color: white;
+  }
+
+  /* ── MAP ── */
+  .map-container {
+    background: var(--cream);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .map-header {
+    padding: 1.8rem 2rem 1rem;
+  }
+
+  .map-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--ink);
+  }
+
+  .map-desc {
+    font-size: 0.85rem;
+    color: var(--stone);
+    font-style: italic;
+    margin-top: 0.3rem;
+  }
+
+  .map-frame-wrap {
+    display: none;
+  }
+
+  .map-stops {
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .map-stop {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+  }
+
+  .stop-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--loch);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .stop-num.stop-final {
+    background: var(--amber);
+  }
+
+  .stop-info {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+  }
+
+  .stop-info strong {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+  }
+
+  .stop-info span {
+    font-size: 0.82rem;
+    color: var(--stone);
+    font-style: italic;
+  }
+
+  .stop-line {
+    width: 1px;
+    height: 16px;
+    background: var(--mist);
+    margin-left: 13px;
+  }
+
+  .map-link {
+    display: inline-block;
+    margin: 0 2rem 1.8rem;
+    padding: 0.55rem 1.2rem;
+    background: var(--loch);
+    color: white;
+    text-decoration: none;
+    font-size: 0.85rem;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    transition: background 0.2s;
+    font-family: 'Crimson Pro', serif;
+  }
+
+  .map-link:hover { background: #1c3040; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--stone);
+    font-style: italic;
+    font-size: 0.95rem;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    background: var(--cream);
+  }
+
+  footer strong { color: var(--heather); font-style: normal; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  .fade-in {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .day-header {
+      grid-template-columns: 60px 1fr auto;
+      gap: 0.8rem;
+      padding: 1.1rem 1.2rem;
+    }
+    .day-number .num { font-size: 1.8rem; }
+    .budget-grid { grid-template-columns: 1fr; }
+    .route-steps { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    .route-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ HERO ══════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-ornament">— A Scottish Adventure —</div>
+  <h1>Leonie <em>&</em> Pierre</h1>
+  <div class="hero-sub">Scotland · Summer 2026</div>
+  <div class="hero-dates">
+    <span>27 July</span>
+    <div class="dot"></div>
+    <span>4 August</span>
+    <div class="dot"></div>
+    <span>8 Days · ✈️ ZRH↔EDI</span>
+  </div>
+  <div class="scroll-hint">scroll</div>
+</section>
+
+<!-- ══════════════════════════════════════ INTRO ══════════════════════════════════════ -->
+<div class="intro-band">
+  <p>A clockwise loop from <strong>Loch Lomond</strong> through the drama of <strong>Glencoe</strong>, the magic of <strong>Isle of Skye</strong>, and the ancient forests of the <strong>Cairngorms</strong> — with three unforgettable day hikes, three confirmed hotels, and one final night in <strong>Edinburgh</strong>.</p>
+</div>
+
+<!-- ══════════════════════════════════════ CONTENT ══════════════════════════════════════ -->
+<main class="content">
+
+  <!-- ROUTE OVERVIEW -->
+  <div class="loop-overview fade-in">
+    <h2>The Loop</h2>
+    <div class="route-steps">
+      <div class="route-stop">
+        <div>
+          <div class="city">Loch Lomond</div>
+          <div class="nights">1 night ✅</div>
+        </div>
+      </div>
+      <div class="route-arrow">→</div>
+      <div class="route-stop">
+        <div>
+          <div class="city">Ballachulish</div>
+          <div class="nights">2 nights ✅</div>
+        </div>
+      </div>
+      <div class="route-arrow">→</div>
+      <div class="route-stop">
+        <div>
+          <div class="city">Isle of Skye</div>
+          <div class="nights">1 night ✅</div>
+        </div>
+      </div>
+      <div class="route-arrow">→</div>
+      <div class="route-stop">
+        <div>
+          <div class="city">Inverness</div>
+          <div class="nights">2 nights ✅</div>
+        </div>
+      </div>
+      <div class="route-arrow">→</div>
+      <div class="route-stop">
+        <div>
+          <div class="city">Edinburgh</div>
+          <div class="nights">1 night ✅</div>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:1.2rem; font-size:0.88rem; color:var(--stone); font-style:italic;">✅ All hotels confirmed · ~740 km total driving · A82 & A87 corridors</p>
+  </div>
+
+  <!-- ITINERARY LABEL -->
+  <div class="section-label fade-in"><span>Day by Day</span></div>
+
+  <!-- DAY CARDS -->
+  <div class="day-list">
+
+    <!-- DAY 1 -->
+    <div class="day-card city-day fade-in">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-number"><div class="num">1</div><div class="label">Day</div></div>
+        <div class="day-info">
+          <h3>Arrival — Zurich → Edinburgh → Loch Lomond</h3>
+          <div class="day-date">Monday, 27 July</div>
+          <div class="day-tags">
+            <span class="tag tag-arrive">✈️ ZRH → EDI</span>
+            <span class="tag tag-city">Loch Lomond</span>
+            <span class="tag tag-hotel">1 Night · ✅ Confirmed</span>
+          </div>
+        </div>
+        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="day-body">
+
+        <div class="block" style="background:rgba(46,74,90,0.07);border:1px solid rgba(46,74,90,0.2);">
+          <div class="block-title"><span class="icon">✈️</span> Flight — ZRH → Edinburgh</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 1.5rem;margin-top:0.5rem;font-size:0.9rem;">
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">REFERENCE</span>ZT3AV8</div>
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">CLASS</span>Economy Comfort · Non-stop</div>
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">DEPARTURE</span>17:40 Zurich ZRH</div>
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">ARRIVAL</span>18:55 Edinburgh EDI</div>
+          </div>
+          <p class="meta" style="margin-top:0.8rem;">⚠️ Arrive Edinburgh ~19:10 after landing · Pick up hire car · Drive ~1.5h to Tarbet · Arrive Loch Lomond ~21:00</p>
+        </div>
+
+        <div class="block block-tip">
+          <div class="block-title"><span class="icon">🗓️</span> Day 1 Schedule</div>
+          <p>
+            <strong>17:40</strong> — ✈️ Depart Zurich<br>
+            <strong>18:55</strong> — 🛬 Land Edinburgh <a class="map-pin" href="https://maps.google.com/?q=Edinburgh+Airport" target="_blank" rel="noopener">📍 Airport</a><br>
+            <strong>~19:30</strong> — Pick up hire car<br>
+            <strong>~21:00</strong> — 🏨 Check in Tarbet Hotel, Loch Lomond
+          </p>
+        </div>
+
+        <div class="block block-hotel">
+          <div class="block-title"><span class="icon">🏨</span> The Tarbet Hotel <span style="font-size:0.8rem; color:var(--moss); font-family:'Crimson Pro',serif; font-weight:400;">✅ Booked · £128.38</span></div>
+          <p>A traditional Scottish lochside hotel right on the banks of Loch Lomond in the village of Tarbet. Classic Highland hospitality with stunning loch views, a welcoming bar and restaurant, and the perfect first taste of the Highlands after landing.</p>
+          <p class="meta">Tarbet, Loch Lomond · 27–28 July · £128.38 confirmed <a class="map-pin" href="https://maps.google.com/?q=The+Tarbet+Hotel,+Tarbet,+Loch+Lomond" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-tip">
+          <div class="block-title"><span class="icon">🌊</span> Evening Tip</div>
+          <p>After a long travel day, the hotel bar is the perfect spot to unwind with your first Scottish dram. If the sun is still up, stroll down to the loch shore — the view across the water to the hills is spectacular at dusk.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY 2 -->
+    <div class="day-card fade-in">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-number"><div class="num">2</div><div class="label">Day</div></div>
+        <div class="day-info">
+          <h3>Drive to Glencoe — Ballachulish</h3>
+          <div class="day-date">Tuesday, 28 July</div>
+          <div class="day-tags">
+            <span class="tag tag-drive">~1h Drive</span>
+            <span class="tag tag-hotel">Ballachulish · 2 Nights · ✅ Confirmed</span>
+          </div>
+        </div>
+        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="day-body">
+        <p>Continue north on the A82 through Rannoch Moor — one of the wildest and most desolate landscapes in Britain. The first sight of Glencoe emerging from the moor is breathtaking. Ballachulish sits right at the gateway to Glencoe, at the foot of Loch Linnhe.</p>
+        <div class="block block-hotel">
+          <div class="block-title"><span class="icon">🏨</span> The Ballachulish Hotel <span style="font-size:0.8rem; color:var(--moss); font-family:'Crimson Pro',serif; font-weight:400;">✅ Booked · £559.44</span></div>
+          <p>A grand Victorian hotel sitting directly on the shores of Loch Linnhe, with Glencoe's dramatic mountains as a backdrop. Spacious rooms with loch views, a whisky bar, and a restaurant serving Scottish produce. The perfect base for two days of Glencoe exploration.</p>
+          <p class="meta">Ballachulish, Glencoe · 28–30 July · £559.44 confirmed (2 nights) <a class="map-pin" href="https://maps.google.com/?q=The+Ballachulish+Hotel,+Ballachulish" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-tip">
+          <div class="block-title"><span class="icon">💡</span> Stop en Route</div>
+          <p>Pause at the Glencoe Visitor Centre (National Trust) to learn about the 1692 Massacre of Glencoe — the valley's dark history makes every view more haunting and beautiful. <a class="map-pin" href="https://maps.google.com/?q=Glencoe+Visitor+Centre,+Glencoe" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY 3 — HIKE -->
+    <div class="day-card hike-day fade-in">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-number"><div class="num">3</div><div class="label">Day</div></div>
+        <div class="day-info">
+          <h3>Hike, Swim & Distillery — Glencoe Day</h3>
+          <div class="day-date">Wednesday, 29 July</div>
+          <div class="day-tags">
+            <span class="tag tag-hike">🥾 Hike</span>
+            <span class="tag tag-hotel">Glencoe</span>
+            <span class="tag tag-arrive">🥃 Distillery</span>
+            <span class="tag tag-city">🏊 Swim</span>
+          </div>
+        </div>
+        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="day-body">
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🗻</span> Morning: Glencoe Lochan Loop</div>
+          <p>An easy 1.5 km circular trail starting from the village. The lochan perfectly mirrors every mountain and pine tree around it — absolutely stunning in morning light. Allow 45 minutes at a leisurely pace.</p>
+          <p class="meta">Easy · 1.5 km · 45 min · Free parking in Glencoe village <a class="map-pin" href="https://maps.google.com/?q=Glencoe+Lochan,+Glencoe" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">💧</span> Late Morning: Steall Falls & Nevis Gorge</div>
+          <p>Drive 20 minutes to Glen Nevis — a dramatic 4 km out-and-back through a narrow rocky gorge to Scotland's second-highest waterfall (120m), the filming location for the Triwizard Tournament in <em>Goblet of Fire</em>. Optional wire-rope bridge crossing for the brave.</p>
+          <p class="meta">Moderate · 4 km return · ~2h · Glen Nevis car park (paid) <a class="map-pin" href="https://maps.google.com/?q=Steall+Falls,+Glen+Nevis,+Fort+William" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🏊</span> Afternoon: Wild Swim — River Etive</div>
+          <p>Take the single-track Glen Etive road off the A82 — one of Scotland's most dramatic glens and a <em>Skyfall</em> filming location. Stop anywhere along the river for natural pools, cascades and gentle slides into crystal-clear water. Utterly wild and magical.</p>
+          <p class="meta">Free · Glen Etive road off A82 · No facilities — bring towels · Allow 1–2h <a class="map-pin" href="https://maps.google.com/?q=Glen+Etive,+Glencoe,+Scotland" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block" style="background:rgba(200,131,42,0.07);border:1px solid rgba(200,131,42,0.2);">
+          <div class="block-title"><span class="icon">🥃</span> Late Afternoon: Ben Nevis Distillery</div>
+          <p>Just 20 minutes from Glen Etive, at the foot of Britain's highest mountain in Fort William. Founded in 1825, the visitor centre tour covers the distillery's vibrant history and the craft behind Ben Nevis single malt, finishing with a tasting of several whiskies. Choose the 4-dram option for the full experience. If you're driving, ask for a "driver's dram" — a miniature to enjoy back at the hotel.</p>
+          <p class="meta">📍 Lochy Bridge, Fort William · ~£15pp · bennevisdistillery.com · Book ahead · Open from 10am <a class="map-pin" href="https://maps.google.com/?q=Ben+Nevis+Distillery,+Fort+William" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-tip">
+          <div class="block-title"><span class="icon">🍺</span> Evening</div>
+          <p>Back to The Ballachulish Hotel for dinner — their restaurant serves excellent Scottish produce with unforgettable loch views. Order the local venison or fresh Loch Linnhe seafood with a dram by the fire.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY 4 -->
+    <div class="day-card fade-in">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-number"><div class="num">4</div><div class="label">Day</div></div>
+        <div class="day-info">
+          <h3>Drive to Isle of Skye</h3>
+          <div class="day-date">Thursday, 30 July</div>
+          <div class="day-tags">
+            <span class="tag tag-drive">~2h Drive</span>
+            <span class="tag tag-hotel">Skye · 1 Night · ✅ Confirmed</span>
+          </div>
+        </div>
+        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="day-body">
+        <p>Head north to Fort William then west along the legendary Road to the Isles (A830). Stop at Glenfinnan Viaduct and Eilean Donan Castle en route, then arrive on Skye for swimming and a coastal walk before dinner.</p>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🚂</span> Morning Stop: Glenfinnan Viaduct</div>
+          <p>The iconic 21-arch Hogwarts Bridge — park at the NTS car park (£3.50) and hike 15 min up to the hilltop viewpoint. The Jacobite Steam Train crosses at ~10:45am. Time your arrival to catch it.</p>
+          <p class="meta">A830 · 25 min from Fort William · On route to Skye <a class="map-pin" href="https://maps.google.com/?q=Glenfinnan+Viaduct,+Glenfinnan" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🏊</span> Afternoon: Fairy Pools Wild Swim</div>
+          <p>One of the most magical wild swimming spots in the UK — crystal-clear turquoise pools fed by waterfalls at the foot of the Black Cuillin mountains. Swim through a natural arch underwater (bring goggles). Go early to avoid crowds. A wetsuit helps but isn't essential.</p>
+          <p class="meta">📍 Glenbrittle, Isle of Skye · 25 min walk from car park · Free · Arrive before 9am if possible <a class="map-pin" href="https://maps.google.com/?q=Fairy+Pools,+Glenbrittle,+Isle+of+Skye" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🥾</span> Option: Loch Sligachan Walk</div>
+          <p>A gentle 11 km moderate walk starting from the famous Sligachan Hotel, following the river with jaw-dropping views of the Cuillin Ridge all the way. A perfect leg-stretch after the drive, finishing with a legendary pint at the Sligachan Hotel pub.</p>
+          <p class="meta">Moderate · 11 km · ~4h · Sligachan car park · Good for all abilities <a class="map-pin" href="https://maps.google.com/?q=Sligachan+Hotel,+Isle+of+Skye" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hotel">
+          <div class="block-title"><span class="icon">🏨</span> Greshornish House Hotel <span style="font-size:0.8rem; color:var(--moss); font-family:'Crimson Pro',serif; font-weight:400;">✅ Booked · £378</span></div>
+          <p>A stunning early 18th-century country house tucked away on the remote Greshornish Peninsula, overlooking its own private loch. One of Skye's most secluded and romantic hideaways — candlelit dining, log fires, and total peace.</p>
+          <p class="meta">Greshornish, Isle of Skye · 30–31 July · £378 confirmed (1 night) <a class="map-pin" href="https://maps.google.com/?q=Greshornish+House+Hotel,+Isle+of+Skye" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-tip">
+          <div class="block-title"><span class="icon">🦅</span> Wildlife Watch</div>
+          <p>Keep eyes peeled on the drive — golden eagles and red deer are often spotted near Glen Shiel. The Greshornish Peninsula itself is excellent for otters and sea eagles from the shoreline at dusk.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY 5 — HIKE -->
+    <div class="day-card hike-day fade-in">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-number"><div class="num">5</div><div class="label">Day</div></div>
+        <div class="day-info">
+          <h3>Hike #2 — Quiraing, Isle of Skye → Inverness</h3>
+          <div class="day-date">Friday, 31 July</div>
+          <div class="day-tags">
+            <span class="tag tag-hike">🥾 Day Hike</span>
+            <span class="tag tag-drive">~2.5h Drive</span>
+            <span class="tag tag-hotel">Inverness · 2 Nights · ✅ Confirmed</span>
+          </div>
+        </div>
+        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="day-body">
+        <p>Check out of Greshornish and pack in as much Skye magic as possible — hike the Quiraing, visit Talisker Distillery, then drive to Inverness for folk music at Hootananny.</p>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🗻</span> Early Morning: The Quiraing Circuit</div>
+          <p>A 7 km circular route through an otherworldly landscape of soaring cliffs, undulating green slopes and needle-like pinnacles. Arrive at dawn to have the ridge to yourself in the mist — pure magic. Sweeping views across the Sound of Raasay.</p>
+          <p class="meta">Moderate · 7 km · ~3–4h · Parking at Quiraing car park (small fee) · Start by 7am <a class="map-pin" href="https://maps.google.com/?q=Quiraing,+Isle+of+Skye" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🪨</span> Option: Old Man of Storr</div>
+          <p>Only 20 minutes south — a shorter iconic hike (3.8 km, 1.5h) to the dramatic rock pinnacles of the Storr with extraordinary views over Loch Leathan. Do this after the Quiraing if energy allows.</p>
+          <p class="meta">Easy–Moderate · 3.8 km · ~1.5h · Storr car park (paid) <a class="map-pin" href="https://maps.google.com/?q=Old+Man+of+Storr,+Isle+of+Skye" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block" style="background:rgba(200,131,42,0.07);border:1px solid rgba(200,131,42,0.2);">
+          <div class="block-title"><span class="icon">🥃</span> Midday: Talisker Distillery</div>
+          <p>Skye's legendary distillery on the wild shores of Loch Harport, with the Cuillin Hills towering behind. Talisker produces a bold, briny, peppery single malt shaped entirely by the sea air — their <em>"Made by the Sea"</em> motto is no marketing trick. The tour ends with a proper tasting of several expressions. <strong>Book well in advance</strong> — sells out in summer.</p>
+          <p class="meta">📍 Carbost, Isle of Skye · ~£20pp · taliskerwhisky.com · 30 min from the Quiraing <a class="map-pin" href="https://maps.google.com/?q=Talisker+Distillery,+Carbost,+Isle+of+Skye" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🏊</span> Option: Loch Sligachan Swim</div>
+          <p>On your way east off Skye — a short swim in the turquoise waters of Loch Sligachan with the Red Cuillin hills reflected in the water. One of the most scenic wild swims in Scotland. The Sligachan Hotel is right there for a warming dram after.</p>
+          <p class="meta">📍 Sligachan, Isle of Skye · Roadside access · Free · Perfect stop en route to Inverness <a class="map-pin" href="https://maps.google.com/?q=Loch+Sligachan,+Isle+of+Skye" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hotel">
+          <div class="block-title"><span class="icon">🏨</span> Hootananny <span style="font-size:0.8rem; color:var(--moss); font-family:'Crimson Pro',serif; font-weight:400;">✅ Booked · £752.64</span></div>
+          <p>You've booked rooms at the legendary Hootananny — Inverness's most celebrated live music pub and hotel. You're staying <em>above</em> the party — earplugs optional, atmosphere guaranteed.</p>
+          <p class="meta">67 Church St, Inverness · 31 July–2 Aug · £752.64 confirmed (2 nights) <a class="map-pin" href="https://maps.google.com/?q=Hootananny,+67+Church+Street,+Inverness" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-tip">
+          <div class="block-title"><span class="icon">🎶</span> Evening</div>
+          <p>Walk downstairs to the bar — live Scottish folk sessions start around 9pm. You literally don't have to go anywhere. One of the great lucky coincidences of the trip!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY 6 -->
+    <div class="day-card fade-in">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-number"><div class="num">6</div><div class="label">Day</div></div>
+        <div class="day-info">
+          <h3>Inverness — Loch Ness & Rest</h3>
+          <div class="day-date">Saturday, 1 August</div>
+          <div class="day-tags">
+            <span class="tag tag-city">Inverness</span>
+            <span class="tag tag-hotel">Night 2 at Hootananny · ✅ Confirmed</span>
+          </div>
+        </div>
+        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="day-body">
+        <p>A full active day around Inverness and Loch Ness — hike to a dramatic waterfall, take a wild swim, visit Urquhart Castle, and end with the liveliest folk session of the week at Hootananny.</p>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🗻</span> Morning Hike: Falls of Foyers</div>
+          <p>A stunning short hike (3 km loop, ~1.5h) through ancient oak woodland on the southern shore of Loch Ness to a dramatic 62m double waterfall plunging into a deep gorge. One of Scotland's most impressive waterfalls and far less crowded than the main Loch Ness stops. Robert Burns wrote a poem about it.</p>
+          <p class="meta">Easy–Moderate · 3 km loop · ~1.5h · Free · Foyers village, south Loch Ness · 30 min from Inverness <a class="map-pin" href="https://maps.google.com/?q=Falls+of+Foyers,+Loch+Ness" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🏊</span> Wild Swim: Loch Duntelchaig</div>
+          <p>A hidden gem just 20 minutes south of Inverness — a secluded loch with crystal-clear water, virtually no crowds, and easy shore access. One of the best wild swimming lochs in the Highlands for clarity and atmosphere. Beautifully peaceful after the Falls of Foyers walk.</p>
+          <p class="meta">📍 Near Inverness · Free · Quiet road access · Bring a towel and dry robe <a class="map-pin" href="https://maps.google.com/?q=Loch+Duntelchaig,+Inverness" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-tip">
+          <div class="block-title"><span class="icon">🏰</span> Afternoon: Urquhart Castle & Loch Ness</div>
+          <p>The lakeside castle ruins on Loch Ness — walk the grounds, take in the views, and keep an eye on the water. Then drive to the Dores Inn on the south shore for a pint and the best Nessie-watching spot in Scotland. Admission ~£15pp. <a class="map-pin" href="https://maps.google.com/?q=Urquhart+Castle,+Loch+Ness" target="_blank" rel="noopener">📍 Castle</a> <a class="map-pin" href="https://maps.google.com/?q=Dores+Inn,+Loch+Ness" target="_blank" rel="noopener">📍 Dores Inn</a></p>
+        </div>
+        <div class="block block-hotel">
+          <div class="block-title"><span class="icon">🏨</span> Hootananny — Night 2 <span style="font-size:0.8rem; color:var(--moss); font-family:'Crimson Pro',serif; font-weight:400;">✅ Confirmed</span></div>
+          <p>Your second night at Hootananny. Saturday sessions are usually the liveliest of the week — expect a packed room, folk music and dancing until late.</p>
+          <p class="meta">67 Church St, Inverness · Included in 31 July–2 Aug booking <a class="map-pin" href="https://maps.google.com/?q=Hootananny,+67+Church+Street,+Inverness" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY 7 — HIKE -->
+    <div class="day-card hike-day fade-in">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-number"><div class="num">7</div><div class="label">Day</div></div>
+        <div class="day-info">
+          <h3>Hike #3 — Cairngorms en route South</h3>
+          <div class="day-date">Sunday, 2 August</div>
+          <div class="day-tags">
+            <span class="tag tag-hike">🥾 Day Hike</span>
+            <span class="tag tag-drive">~3h Drive total</span>
+            <span class="tag tag-hotel">Edinburgh · ✅ Confirmed</span>
+          </div>
+        </div>
+        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="day-body">
+        <p>Check out of Hootananny and drive south through the Cairngorms — hike, swim, visit a distillery, then arrive in Edinburgh for your final evening.</p>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🌲</span> Morning: Loch an Eilein Circuit</div>
+          <p>A 7 km circular walk around a tranquil loch with a fairytale ruined island castle framed by ancient Scots pines. Mostly level, great for all abilities. Utterly peaceful — one of Scotland's most atmospheric walks.</p>
+          <p class="meta">Easy · 7 km loop · ~2h · Rothiemurchus estate near Aviemore (paid parking) <a class="map-pin" href="https://maps.google.com/?q=Loch+an+Eilein,+Rothiemurchus,+Aviemore" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🦌</span> Option: Uath Lochans Viewpoint</div>
+          <p>A short walk (4 km, 1.5h) through dense Caledonian pine forest to a viewpoint overlooking a series of glassy lochans reflecting the Cairngorm peaks. Excellent for spotting red squirrels and ospreys. Only 15 minutes from Loch an Eilein.</p>
+          <p class="meta">Easy · 4 km · ~1.5h · Forestry Commission car park, Inshriach <a class="map-pin" href="https://maps.google.com/?q=Uath+Lochans,+Inshriach,+Cairngorms" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hike">
+          <div class="block-title"><span class="icon">🏊</span> Wild Swim: Loch Morlich</div>
+          <p>The most beginner-friendly wild swim in the Highlands — sandy beaches, shallow entry, and a jaw-dropping backdrop of Cairngorm Mountain. Crystal-clear water and a watersports café right next door for warming up after. Only 15 minutes from Loch an Eilein.</p>
+          <p class="meta">📍 Glenmore, near Aviemore · Car park at loch · Café next door <a class="map-pin" href="https://maps.google.com/?q=Loch+Morlich,+Glenmore,+Aviemore" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block" style="background:rgba(200,131,42,0.07);border:1px solid rgba(200,131,42,0.2);">
+          <div class="block-title"><span class="icon">🥃</span> Afternoon: Dalwhinnie Distillery</div>
+          <p>Scotland's highest distillery at 326m, sitting in the hills just off the A9 — perfectly on your route south to Edinburgh. Dalwhinnie produces a gentle, honeyed Highland malt that's very approachable even for non-whisky-lovers. Fun, informative tours with excellent guides. Ask for a mini bottle to take away if you're driving.</p>
+          <p class="meta">📍 Dalwhinnie, A9 south · ~£15pp · malts.com/dalwhinnie · Book ahead · Perfect stop en route <a class="map-pin" href="https://maps.google.com/?q=Dalwhinnie+Distillery,+Dalwhinnie" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+        <div class="block block-hotel">
+          <div class="block-title"><span class="icon">🏨</span> Frederick House Hotel, Edinburgh <span style="font-size:0.8rem; color:var(--moss); font-family:'Crimson Pro',serif; font-weight:400;">✅ Booked · £328.95</span></div>
+          <p>A stylish Georgian townhouse hotel in the heart of Edinburgh's New Town, steps from Princes Street and the castle. A wonderful base for your final evening.</p>
+          <p class="meta">Frederick Street, Edinburgh · Check-in 2 Aug evening · £328.95 confirmed <a class="map-pin" href="https://maps.google.com/?q=Frederick+House+Hotel,+Frederick+Street,+Edinburgh" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY 8 — FINAL EDINBURGH -->
+    <div class="day-card final-day fade-in">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-number"><div class="num">8</div><div class="label">Day</div></div>
+        <div class="day-info">
+          <h3>Edinburgh — Final Day & Departure</h3>
+          <div class="day-date">Monday, 3 August → Tuesday, 4 August</div>
+          <div class="day-tags">
+            <span class="tag tag-city">Edinburgh</span>
+            <span class="tag tag-hotel">Frederick House · ✅ Confirmed</span>
+            <span class="tag tag-arrive">✈️ EZY3245 · 4 Aug 18:20</span>
+          </div>
+        </div>
+        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+      <div class="day-body">
+        <p>Your last morning in Edinburgh is completely free — the city is yours until early afternoon. Flight departs on Tuesday 4 August at 18:20 so there's no rush. Explore, eat well, then head to the airport.</p>
+
+        <div class="block" style="background:rgba(46,74,90,0.07);border:1px solid rgba(46,74,90,0.2);">
+          <div class="block-title"><span class="icon">✈️</span> Flight — EZY3245 Edinburgh → Nice</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 1.5rem;margin-top:0.5rem;font-size:0.9rem;">
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">DATE</span>Tuesday 4 August 2026</div>
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">FLIGHT</span>EZY3245 · easyJet</div>
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">DEPARTURE</span>18:20 Edinburgh</div>
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">ARRIVAL</span>22:00 Nice Terminal 2</div>
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">PIERRE</span>Seat 7A</div>
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">LEONIE</span>Seat 7B</div>
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">BAG DROP OPENS</span>15:50</div>
+            <div><span style="color:var(--stone);font-size:0.78rem;display:block;">BAG DROP CLOSES</span>17:30</div>
+          </div>
+          <p class="meta" style="margin-top:0.8rem;">⚠️ Registration closes 50 min before departure · Be at the airport by <strong>15:30 at the latest</strong> · Edinburgh Airport is ~30 min from the city centre</p>
+        </div>
+
+        <div class="block block-tip">
+          <div class="block-title"><span class="icon">🗓️</span> Suggested Day 8 Schedule</div>
+          <p>
+            <strong>Morning</strong> — Slow breakfast, last wander around Edinburgh (Royal Mile, Grassmarket, Calton Hill) <a class="map-pin" href="https://maps.google.com/?q=Edinburgh+Castle,+Edinburgh" target="_blank" rel="noopener">📍 Castle</a><br>
+            <strong>13:00</strong> — Lunch near the hotel, return hire car if needed<br>
+            <strong>15:00</strong> — Head to Edinburgh Airport <a class="map-pin" href="https://maps.google.com/?q=Edinburgh+Airport" target="_blank" rel="noopener">📍 Airport</a><br>
+            <strong>15:50</strong> — Bag drop opens<br>
+            <strong>17:30</strong> — Bag drop closes — don't be late!<br>
+            <strong>18:20</strong> — ✈️ Departure to Nice<br>
+            <strong>22:00</strong> — 🌴 Arrival Nice Terminal 2
+          </p>
+        </div>
+
+        <div class="block block-hotel">
+          <div class="block-title"><span class="icon">🏨</span> Frederick House Hotel <span style="font-size:0.8rem; color:var(--moss); font-family:'Crimson Pro',serif; font-weight:400;">✅ Booked · £328.95</span></div>
+          <p>A handsome Georgian townhouse hotel in Edinburgh's New Town, right on Frederick Street. Steps from Princes Street, the Scott Monument and Edinburgh Castle. Check out Monday morning — luggage storage usually available if needed for the afternoon.</p>
+          <p class="meta">Frederick Street, Edinburgh · 3–4 August · £328.95 confirmed <a class="map-pin" href="https://maps.google.com/?q=Frederick+House+Hotel,+Frederick+Street,+Edinburgh" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+
+        <div class="block block-tip">
+          <div class="block-title"><span class="icon">🥃</span> Farewell Dinner: The Witchery</div>
+          <p>Edinburgh's most atmospheric restaurant — candlelit, Gothic, right at the gates of Edinburgh Castle. Book for Sunday evening (3 Aug) to end the trip in style. <a class="map-pin" href="https://maps.google.com/?q=The+Witchery+by+the+Castle,+Edinburgh" target="_blank" rel="noopener">📍 Map</a></p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /day-list -->
+
+  <!-- BUDGET -->
+  <div class="section-label fade-in" style="margin-top:3.5rem;"><span>Hotel Budget</span></div>
+  <div class="loop-overview fade-in">
+    <h2>Hotels — All Confirmed ✅</h2>
+    <div class="budget-grid">
+      <div class="budget-item" style="border-left:3px solid var(--moss)"><div class="amount">£128 <span style="font-size:0.7rem;color:var(--moss);">✅</span></div><div class="desc">The Tarbet Hotel — Loch Lomond (night 1)</div></div>
+      <div class="budget-item" style="border-left:3px solid var(--moss)"><div class="amount">£559 <span style="font-size:0.7rem;color:var(--moss);">✅</span></div><div class="desc">The Ballachulish Hotel — Glencoe (nights 2–3)</div></div>
+      <div class="budget-item" style="border-left:3px solid var(--moss)"><div class="amount">£378 <span style="font-size:0.7rem;color:var(--moss);">✅</span></div><div class="desc">Greshornish House — Isle of Skye (night 4)</div></div>
+      <div class="budget-item" style="border-left:3px solid var(--moss)"><div class="amount">£752 <span style="font-size:0.7rem;color:var(--moss);">✅</span></div><div class="desc">Hootananny — Inverness (nights 5–6)</div></div>
+      <div class="budget-item" style="border-left:3px solid var(--moss)"><div class="amount">£328 <span style="font-size:0.7rem;color:var(--moss);">✅</span></div><div class="desc">Frederick House Hotel — Edinburgh (night 7)</div></div>
+    </div>
+    <p style="margin-top:1.2rem; font-weight:600; font-family:'Playfair Display',serif; font-size:1.1rem;">Total: £2,146 for 2 people · ~£1,073 each 🎉</p>
+    <p style="font-size:0.85rem; color:var(--moss); font-style:italic; margin-top:0.3rem;">✅ All hotels fully confirmed — nothing left to book!</p>
+  </div>
+
+  <!-- MAP SECTION -->
+  <div class="section-label fade-in"><span>Route Map</span></div>
+  <div class="map-container fade-in">
+    <div class="map-header">
+      <h2>The Loop — Interactive Map</h2>
+      <p class="map-desc">All 6 stops pinned in order · click a marker for details · ~740 km total driving</p>
+    </div>
+    <div id="trip-map" style="width:100%;height:480px;"></div>
+    <div class="map-stops">
+      <div class="map-stop"><span class="stop-num">1</span><div class="stop-info"><strong>Loch Lomond</strong><span>The Tarbet Hotel · Night 1 · ✅</span></div></div>
+      <div class="stop-line"></div>
+      <div class="map-stop"><span class="stop-num">2</span><div class="stop-info"><strong>Ballachulish / Glencoe</strong><span>The Ballachulish Hotel · Nights 2–3 · ✅ · 🥾 Hike</span></div></div>
+      <div class="stop-line"></div>
+      <div class="map-stop"><span class="stop-num">3</span><div class="stop-info"><strong>Isle of Skye</strong><span>Greshornish House · Night 4 · ✅ · 🥾 Hike</span></div></div>
+      <div class="stop-line"></div>
+      <div class="map-stop"><span class="stop-num">4</span><div class="stop-info"><strong>Inverness</strong><span>Hootananny · Nights 5–6 · ✅ · 🎶 Live Music</span></div></div>
+      <div class="stop-line"></div>
+      <div class="map-stop"><span class="stop-num stop-final">5</span><div class="stop-info"><strong>Edinburgh</strong><span>Frederick House Hotel · Night 7 · ✅ · 🥾 Cairngorms en route</span></div></div>
+    </div>
+    <a class="map-link"
+       href="https://www.google.com/maps/dir/The+Tarbet+Hotel+Tarbet+Loch+Lomond/The+Ballachulish+Hotel+Ballachulish/Greshornish+House+Hotel+Isle+of+Skye/Hootananny+Inverness/Frederick+House+Hotel+Edinburgh"
+       target="_blank" rel="noopener">
+      Open full route in Google Maps ↗
+    </a>
+  </div>
+
+  <!-- EXTRAS & EXPERIENCES -->
+  <div class="section-label fade-in"><span>Extras & Experiences</span></div>
+
+  <div class="extras-grid fade-in">
+
+    <!-- HARRY POTTER -->
+    <div class="extra-card">
+      <div class="extra-icon">⚡</div>
+      <h3>Harry Potter Magic</h3>
+      <div class="extra-item">
+        <div class="extra-item-title">🚂 Glenfinnan Viaduct — The Hogwarts Bridge</div>
+        <p>One of Scotland's most iconic sights — the 21-arch curved viaduct soaring 30m over the Glencoe valley, featured in <em>Chamber of Secrets</em> and <em>Prisoner of Azkaban</em>. The <strong>Jacobite Steam Train</strong> (the real-life Hogwarts Express) crosses it at ~10:45am and ~1:15pm daily from April to October. <strong>Arrive 45 min early</strong> and hike 15 min up to the hilltop viewpoint for the shot. Park at the NTS car park (£3.50). Just 25 min from Fort William — perfect en route from Ballachulish to Skye on Day 4.</p>
+        <p class="extra-meta">📍 Glenfinnan, A830 · On your Day 4 route to Skye · Book Jacobite train tickets months ahead if you want to ride</p>
+      </div>
+      <div class="extra-item">
+        <div class="extra-item-title">🪄 Loch Eilt — Dumbledore's Grave</div>
+        <p>Just a 5-minute stop off the A830, barely 10 minutes past Glenfinnan. A small island in Loch Eilt was used as Dumbledore's burial place. You can see it clearly from the roadside. Combine with Glenfinnan for a full Potter pilgrimage in one morning.</p>
+        <p class="extra-meta">📍 A830 roadside, between Glenfinnan and Lochailort · Free · 5 min walk from lay-by</p>
+      </div>
+      <div class="extra-item">
+        <div class="extra-item-title">💧 Steall Falls, Glen Nevis — Triwizard Tournament</div>
+        <p>The meadow at the foot of Steall Falls was the filming location for the Triwizard Tournament in <em>Goblet of Fire</em>. You're already hiking here on Day 3 — keep your eyes open for that magical grassy amphitheatre beneath the falls.</p>
+        <p class="extra-meta">📍 Glen Nevis, near Fort William · Already in your Day 3 hike itinerary</p>
+      </div>
+    </div>
+
+    <!-- DISTILLERIES -->
+    <div class="extra-card">
+      <div class="extra-icon">🥃</div>
+      <h3>Whisky Distillery Visits</h3>
+      <div class="extra-item">
+        <div class="extra-item-title">🏭 Talisker Distillery — Isle of Skye</div>
+        <p>Scotland's most famous island distillery, perched on the wild shores of Loch Harport with the Cuillin Hills as a backdrop. Talisker produces a bold, briny, peppery single malt shaped by the sea air — their <em>"Made by the Sea"</em> motto is no marketing trick. The tour walks you through copper pot stills and traditional worm tubs, finishing with a proper tasting. <strong>Book in advance</strong> — it sells out in summer.</p>
+        <p class="extra-meta">📍 Carbost, Isle of Skye · ~£20pp · taliskerwhisky.com · 20 min from Portree · Best on Day 4 or 5</p>
+      </div>
+      <div class="extra-item">
+        <div class="extra-item-title">🏭 Dalwhinnie Distillery — Cairngorms</div>
+        <p>Scotland's highest distillery at 326m, sitting in the hills just off the A9 near Aviemore. Dalwhinnie produces a gentle, honeyed Highland malt — very approachable for non-whisky-lovers. The guide-led tours are well-reviewed for being fun and informative, and they offer mini bottles to take home if you're driving. <strong>Ideal on Day 7</strong>, perfectly on route between Inverness and the Cairngorms.</p>
+        <p class="extra-meta">📍 Dalwhinnie, near Aviemore · ~£15pp · malts.com/dalwhinnie · Book ahead · Perfect on Day 7 route</p>
+      </div>
+    </div>
+
+    <!-- PUBS -->
+    <div class="extra-card">
+      <div class="extra-icon">🍺</div>
+      <h3>Outstanding Pubs</h3>
+      <div class="extra-item">
+        <div class="extra-item-title">🏴󠁧󠁢󠁳󠁣󠁴󠁿 The Drovers Inn — Inverarnan, Loch Lomond</div>
+        <p>Founded in 1705, this is one of the most extraordinary pubs in Scotland. Stepping inside feels like time-travel — the decor is virtually unchanged for 300 years, complete with taxidermied animals including a full stuffed grizzly bear, dark wooden beams, and an open fire. Frequented by Highland cattle drovers and now by walkers on the West Highland Way. Rumoured to be haunted. <strong>Stop here for lunch on Day 2</strong> as you drive north from Loch Lomond toward Glencoe — it's right on the A82.</p>
+        <p class="extra-meta">📍 Inverarnan, Loch Lomond · On the A82 · Perfect Day 2 lunch stop · droversinn.co.uk</p>
+      </div>
+      <div class="extra-item">
+        <div class="extra-item-title">🏴󠁧󠁢󠁳󠁣󠁴󠁿 The Stein Inn — Waternish, Isle of Skye</div>
+        <p>The oldest pub on Skye, tucked at the end of a winding coastal road on the remote Waternish Peninsula. A shining beacon of hospitality: real ales on tap, over 90 single malts behind the bar, a roaring fire, and views across the sea loch. Locals and hikers mix easily. The detour is worth every mile. Pair it with sunset — the sky over the water from here is breathtaking.</p>
+        <p class="extra-meta">📍 Stein, Waternish Peninsula, Skye · 30 min from Dunvegan · Best visited Day 4 evening or Day 5</p>
+      </div>
+      <div class="extra-item">
+        <div class="extra-item-title">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Hootananny — Inverness</div>
+        <p>A legendary live music pub in the heart of Inverness, pulsing with energy every evening. Traditional Scottish folk sessions downstairs, a rooftop bar above, and a warm, unpretentious atmosphere that mixes locals and travellers perfectly. Don't plan an early night — things don't get going until 9pm.</p>
+        <p class="extra-meta">📍 67 Church St, Inverness · Free entry most nights · hootanannyinverness.co.uk · Perfect for Night 5</p>
+      </div>
+    </div>
+
+    <!-- WILD SWIMMING -->
+    <div class="extra-card">
+      <div class="extra-icon">🏊</div>
+      <h3>Wild Swimming</h3>
+      <p style="font-size:0.85rem;color:var(--stone);font-style:italic;margin-bottom:0.8rem;">Scottish water is cold even in July — 10–14°C in most lochs. Take it slow getting in, never swim alone, and bring a dry robe or towel. The cold is absolutely worth it.</p>
+      <div class="extra-item">
+        <div class="extra-item-title">💧 The Fairy Pools — Isle of Skye</div>
+        <p>Crystal-clear turquoise pools fed by waterfalls at the foot of the Black Cuillin mountains near Glenbrittle — one of the most magical wild swimming spots in the UK. You can swim through a natural arch underwater (bring goggles). Go very early morning to beat the crowds and have the pools to yourself in the mist. A wetsuit is advisable but not essential.</p>
+        <p class="extra-meta">📍 Glenbrittle, Isle of Skye · 25 min walk from car park · Best on Day 4 or 5 · Free · Go before 8am</p>
+      </div>
+      <div class="extra-item">
+        <div class="extra-item-title">💧 River Etive — Glen Etive, Glencoe</div>
+        <p>A single-track road off the A82 follows the River Etive through one of Scotland's wildest and most dramatic glens. There are hundreds of natural pools, cascades and gentle slides along the river — just stop anywhere and jump in. Wild, remote, and utterly magical. <strong>This road was a filming location for Skyfall</strong> (James Bond). Allow a full afternoon.</p>
+        <p class="extra-meta">📍 Glen Etive road off the A82, near Glencoe · Best on Day 3 afternoon · Free · No facilities</p>
+      </div>
+      <div class="extra-item">
+        <div class="extra-item-title">💧 Loch Morlich — Cairngorms</div>
+        <p>The most accessible and beginner-friendly wild swimming loch in the Highlands, with sandy beaches, shallow entry points, and a stunning backdrop of Cairngorm Mountain. Crystal-clear water, a watersports centre café nearby, and enough room to swim without feeling crowded. <strong>Perfect after the Loch an Eilein hike</strong> on Day 7 — the two are only 15 minutes apart.</p>
+        <p class="extra-meta">📍 Glenmore, near Aviemore · Car park at loch · Café next door · Perfect on Day 7 afternoon</p>
+      </div>
+    </div>
+
+  </div><!-- /extras-grid -->
+
+  <!-- PACKING -->
+  <div class="section-label fade-in"><span>What to Pack</span></div>
+  <div class="loop-overview fade-in">
+    <h2>Essentials for Scotland in July</h2>
+    <div class="pack-grid">
+      <div class="pack-item"><span class="pi">✓</span> Waterproof jacket (always)</div>
+      <div class="pack-item"><span class="pi">✓</span> Hiking boots, ankle support</div>
+      <div class="pack-item"><span class="pi">✓</span> Midge repellent (essential!)</div>
+      <div class="pack-item"><span class="pi">✓</span> Layers — mornings are cold</div>
+      <div class="pack-item"><span class="pi">✓</span> OS Maps app (offline maps)</div>
+      <div class="pack-item"><span class="pi">✓</span> Reusable water bottles</div>
+      <div class="pack-item"><span class="pi">✓</span> Camera or spare phone storage</div>
+      <div class="pack-item"><span class="pi">✓</span> One smart dinner outfit</div>
+      <div class="pack-item"><span class="pi">✓</span> Travel adapter (UK plug)</div>
+      <div class="pack-item"><span class="pi">✓</span> Cash (remote areas)</div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>Made with love for <strong>Leonie & Pierre</strong> · Scotland, 27 July – 4 August 2026 🏴󠁧󠁢󠁳󠁣󠁴󠁿</p>
+  <p style="margin-top:0.5rem; font-size:0.8rem; opacity:0.6;">Book hotels early · Midges are worst at dawn and dusk · Drive on the left · Enjoy every dram</p>
+</footer>
+
+<script>
+  function toggleDay(header) {
+    const card = header.closest('.day-card');
+    card.classList.toggle('open');
+  }
+
+  // Intersection observer for fade-in
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.05 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // Open first day by default
+  document.querySelector('.day-card .day-header').click();
+
+  // ── Leaflet map ──
+  var stops = [
+    { num:1, lat:56.2044, lng:-4.7220, name:"The Tarbet Hotel",        sub:"Loch Lomond · Night 1 · ✅",           confirmed:true, last:false },
+    { num:2, lat:56.6792, lng:-5.1697, name:"The Ballachulish Hotel",   sub:"Glencoe · Nights 2–3 · ✅ · 🥾 Hike",  confirmed:true, last:false },
+    { num:3, lat:57.4410, lng:-6.4080, name:"Greshornish House Hotel",  sub:"Isle of Skye · Night 4 · ✅ · 🥾 Hike", confirmed:true, last:false },
+    { num:4, lat:57.4728, lng:-4.2274, name:"Hootananny",               sub:"Inverness · Nights 5–6 · ✅ · 🎶",      confirmed:true, last:false },
+    { num:5, lat:55.9515, lng:-3.2158, name:"Frederick House Hotel",    sub:"Edinburgh · Night 7 · ✅",              confirmed:true, last:true  }
+  ];
+
+  var tripMap = L.map('trip-map', { zoomControl:true, scrollWheelZoom:false })
+                 .setView([56.8, -4.6], 6);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+    maxZoom: 18
+  }).addTo(tripMap);
+
+  // Draw route polyline closing the loop
+  var latlngs = stops.map(function(s){ return [s.lat, s.lng]; });
+  latlngs.push(latlngs[0]);
+  L.polyline(latlngs, { color:'#2e4a5a', weight:3, opacity:0.7, dashArray:'8,6' }).addTo(tripMap);
+
+  // Add numbered markers
+  stops.forEach(function(s) {
+    var bg = s.last ? '#c8832a' : '#3d5a3e';
+    var icon = L.divIcon({
+      className: '',
+      html: '<div style="width:30px;height:30px;border-radius:50%;background:'+bg+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;font-family:Georgia,serif;border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.35);">'+s.num+'</div>',
+      iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,-18]
+    });
+    L.marker([s.lat, s.lng], {icon:icon})
+     .addTo(tripMap)
+     .bindPopup('<strong style="font-family:Georgia,serif;font-size:1rem;">'+s.name+'</strong><br><span style="font-size:0.85rem;color:#666;">'+s.sub+'</span>');
+  });
+</script>
+
+</body>
+</html>
